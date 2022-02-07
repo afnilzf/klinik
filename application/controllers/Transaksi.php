@@ -82,4 +82,41 @@ class Transaksi extends CI_Controller
             redirect('dokter/data_dokter');
         }
     }
+    public function rekapHarian()
+    {
+        $this->load->model('Eksekusi_model', 'model');
+        $data['title'] = 'Transaksi Masuk';
+        $data['user'] = $this->db->get_where('user', ['email' => $this->session->userdata('email')])->row_array();
+        $data['menu'] = $this->db->get('user_menu')->result_array();
+        $ambil = $this->input->post();
+        $date = date('d-m-Y');
+        $data['transaksi'] = $this->model->transaksiRekap($ambil['date']);
+        $data['total'] = $this->model->sum_totalRekap($ambil['date']);
+        $data['poli'] = $this->model->get_data('poliklinik');
+
+        $this->load->view('templates/header', $data);
+        $this->load->view('templates/sidebar', $data);
+        $this->load->view('templates/topbar', $data);
+        $this->load->view('transaksi/rekap', $data);
+        $this->load->view('templates/footer');
+    }
+    public function rekapBulanan()
+    {
+        $this->load->model('Eksekusi_model', 'model');
+        $data['title'] = 'Transaksi Masuk';
+        $data['user'] = $this->db->get_where('user', ['email' => $this->session->userdata('email')])->row_array();
+        $data['menu'] = $this->db->get('user_menu')->result_array();
+        $ambil = $this->input->post();
+        $tahun = date('Y');
+        // $date = $date.$ambil['bulan'];
+        $data['transaksi'] = $this->model->transaksiRekapBulan($ambil['bulan'], $tahun);
+        $data['total'] = $this->model->sum_totalRekapBulan($ambil['bulan'], $tahun);
+        $data['poli'] = $this->model->get_data('poliklinik');
+
+        $this->load->view('templates/header', $data);
+        $this->load->view('templates/sidebar', $data);
+        $this->load->view('templates/topbar', $data);
+        $this->load->view('transaksi/rekap', $data);
+        $this->load->view('templates/footer');
+    }
 }

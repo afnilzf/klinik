@@ -22,6 +22,13 @@ class Eksekusi_model extends CI_Model
             ->get($table)->last_row('array');
         return $query;
     }
+    public function get_rowdataTigaKondisi($table, $id1, $id2, $id3, $kondisi1, $kondisi2, $kondisi3)
+    {
+        $where = "$id1 = '$kondisi1' AND $id2 = '$kondisi2' AND $id3 = '$kondisi3'";
+        $query = $this->db->where($where)
+            ->get($table)->last_row('array');
+        return $query;
+    }
 
     public function insert($table, $data)
     {
@@ -163,6 +170,30 @@ class Eksekusi_model extends CI_Model
         $this->db->join('obat', 'obat.id_obat=transaksi.id_obat');
         $this->db->join('resep', 'resep.id_obat=transaksi.id_obat');
         $this->db->where($where);
+        $this->db->group_by('transaksi.id_obat');
+        return $this->db->get()->result_array();
+    }
+    public function transaksiRekap($tanggal)
+    {
+        $this->db->select('*');
+        $this->db->from('transaksi');
+        $this->db->join('berobat', 'berobat.id_berobat=transaksi.id_berobat');
+        $this->db->join('obat', 'obat.id_obat=transaksi.id_obat');
+        $this->db->join('resep', 'resep.id_obat=transaksi.id_obat');
+        $this->db->where('berobat.tanggal_berobat', $tanggal);
+        $this->db->group_by('transaksi.id_berobat');
+        return $this->db->get()->result_array();
+    }
+    public function transaksiRekapBulan($bulan, $tahun)
+    {
+        $where = "MONTH(tanggal_berobat) = $bulan AND YEAR(tanggal_berobat) = $tahun";
+        $this->db->select('*');
+        $this->db->from('transaksi');
+        $this->db->join('berobat', 'berobat.id_berobat=transaksi.id_berobat');
+        $this->db->join('obat', 'obat.id_obat=transaksi.id_obat');
+        $this->db->join('resep', 'resep.id_obat=transaksi.id_obat');
+        $this->db->where($where);
+        $this->db->group_by('transaksi.id_berobat');
         return $this->db->get()->result_array();
     }
     public function stok_keluar()
@@ -198,6 +229,30 @@ class Eksekusi_model extends CI_Model
             ->from('transaksi')
             ->where($where);
         return $query->get()->row_array();
+    }
+    public function sum_totalRekap($tanggal)
+    {
+        $this->db->select_sum('total', 'hasil');
+        $this->db->from('v_rekap_nilai');
+        $this->db->join('berobat', 'berobat.id_berobat=v_rekap_nilai.id_berobat');
+        $this->db->group_by('v_rekap_nilai.id_berobat');
+        $this->db->where('berobat.tanggal_berobat', $tanggal);
+        return $this->db->get()->row_array();
+        // $query = $this->db->select_sum('total', 'hasil')
+        //     ->from('transaksi')
+        //     ->join('berobat', 'berobat.id_berobat=transaksi.id_berobat')
+        //     ->where('berobat.tanggal_berobat', $tanggal)
+        //     ->group_by('transaksi.id_berobat');
+        // return $query->get()->row_array();
+    }
+    public function sum_totalRekapBulan($bulan, $tahun)
+    {
+        $where = "MONTH(tanggal_berobat) = $bulan AND YEAR(tanggal_berobat) = $tahun";
+        $this->db->select_sum('total', 'hasil');
+        $this->db->from('v_rekap_nilai');
+        $this->db->join('berobat', 'berobat.id_berobat=v_rekap_nilai.id_berobat');
+        $this->db->where($where);
+        return $this->db->get()->row_array();
     }
 
     // public function resepApoteker($id)

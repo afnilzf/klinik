@@ -34,6 +34,7 @@ class Berobat extends CI_Controller
         $this->load->view('berobat/index', $data);
         $this->load->view('templates/footer');
     }
+
     public function resep($id)
     {
         // var_dump($id);
@@ -52,6 +53,8 @@ class Berobat extends CI_Controller
             $data['berobat'] = $this->model->data_berobatSatuKondisi($id_pasien);
         }
         $data['transaksi'] = $this->model->transaksi($id);
+        // var_dump(($data['transaksi']));
+        // die();
         $data['jumlah'] = $this->model->get_rowdata('transaksi', 'id_berobat', $id);
         // var_dump($data['transaksi']);
         // die();
@@ -71,12 +74,18 @@ class Berobat extends CI_Controller
         $date = date('Y-m-d');
         $id = $this->input->post('id_berobat');
         $this->load->model('Eksekusi_model', 'model');
-        $data = [
-            'status' => 'Transaksi'
-        ];
-        $this->model->update('berobat', $data, 'id_berobat', $id);
-        $this->session->set_flashdata('message', '<div class="alert alert-success" role="alert">resep berhasil dikirim! </div>');
-        redirect('berobat');
+        $cekResep = $this->model->get_rowdata('resep', 'id_berobat', $id);
+        if ($cekResep != 0) {
+            $data = [
+                'status' => 'Transaksi'
+            ];
+            $this->model->update('berobat', $data, 'id_berobat', $id);
+            $this->session->set_flashdata('message', '<div class="alert alert-success" role="alert">resep berhasil dikirim! </div>');
+            redirect('berobat');
+        } else {
+            $this->session->set_flashdata('message', '<div class="alert alert-danger" role="alert">Mohon isi resep terlebih dahulu! </div>');
+            redirect('berobat/resep/' . $id);
+        }
     }
     public function add_resep()
     {
@@ -89,6 +98,21 @@ class Berobat extends CI_Controller
         $this->db->insert('resep', $data);
         $this->session->set_flashdata('message', '<div class="alert alert-success" role="alert"> New resep added! </div>');
         redirect('berobat/resep/' . $id);
+    }
+    public function edit_resep()
+    {
+        $this->load->model('Eksekusi_model', 'model');
+        $id = $this->input->post('id_resep');
+        $id_berobat = $this->input->post('id_berobat');
+        // var_dump($id_berobat);
+        // die();
+        $data = [
+            'id_obat' => $this->input->post('obat'),
+            'keterangan_pakai' => $this->input->post('keterangan'),
+        ];
+        $this->model->update('resep', $data, 'id_resep', $id);
+        $this->session->set_flashdata('message', '<div class="alert alert-success" role="alert"> New resep added! </div>');
+        redirect('berobat/resep/' . $id_berobat);
     }
     public function simpan_transaksi()
     {
@@ -105,7 +129,6 @@ class Berobat extends CI_Controller
             $qty = $this->input->post('jumlah' . $i);
             $sub = $qty * $key['harga_jual'];
             $data = [
-                'id_transaksi' => $kode_transaksi,
                 'id_obat' => $key['id_obat'],
                 'id_berobat' => $key['id_berobat'],
                 'qty' => $qty,
@@ -132,7 +155,22 @@ class Berobat extends CI_Controller
             ];
             $this->model->update('transaksi', $update, 'id_berobat', $id);
         }
+        $selesai = [
+            'status' => 'Selesai',
+        ];
+        $this->model->update('berobat', $selesai, 'id_berobat', $id);
         $this->session->set_flashdata('message', '<div class="alert alert-success" role="alert"> New resep added! </div>');
         redirect('berobat/resep/' . $id);
+    }
+    public function hapus_resep($id)
+    {
+        $ambil = $this->input->post();
+        $this->load->model('Eksekusi_model', 'model');
+        // var_dump($ambil_user);
+        // die();
+        $this->db->where('id_resep', $id);
+        $this->db->delete('resep');
+        $this->session->set_flashdata('message', '<div class="alert alert-danger" role="alert"> resep berhasil dihapus! </div>');
+        redirect('berobat/resep/' . $ambil['id_berobat']);
     }
 }

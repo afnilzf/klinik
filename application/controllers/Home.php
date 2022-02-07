@@ -22,43 +22,49 @@ class Home extends CI_Controller
         $this->load->model('Eksekusi_model', 'model');
         // var_dump($this->input->post());
         // die();
-        $pasien = [
-            'nama_pasien' => $this->input->post('name'),
-            'alamat_pasien' => $this->input->post('address'),
-            'status_bpjs' => $this->input->post('bpjs'),
-        ];
-        $this->db->insert('pasien', $pasien);
-        $nama_pasien = $this->input->post('name');
+        $hariIni = date('Y-m-d');
         $tanggal = $this->input->post('date');
-        $ambil_pasien = $this->model->get_rowdata('pasien', 'nama_pasien', $nama_pasien);
-        $cek_antrian = $this->model->get_rowdataDuaKondisi('berobat', 'tanggal_berobat', 'status', $tanggal, 'Proses');
-        // var_dump($cek_antrian);
-        // die();
-        if ($cek_antrian == null) {
-            $berobat = [
-                'id_pasien' => $ambil_pasien['id_pasien'],
-                'id_poli' => $this->input->post('poli'),
-                'no_berobat' => $this->input->post('no_berobat'),
-                'tanggal_berobat' => $this->input->post('date'),
-                'antrian' => 1,
-                'keluhan' => $this->input->post('message'),
-                'status' => 'Proses',
-            ];
-            $this->db->insert('berobat', $berobat);
+        if ($tanggal < $hariIni) {
+            $this->session->set_flashdata('message', '<div class="alert alert-dark swalDefaultSuccess" role="alert"> Mohon masukan tanggal yang sesuai </div>');
+            redirect('home');
         } else {
-            $berobat = [
-                'id_pasien' => $ambil_pasien['id_pasien'],
-                'id_poli' => $this->input->post('poli'),
-                'no_berobat' => $this->input->post('no_berobat'),
-                'tanggal_berobat' => $this->input->post('date'),
-                'antrian' => (int)$cek_antrian['antrian'] + 1,
-                'keluhan' => $this->input->post('message'),
-                'status' => 'Proses',
+            $pasien = [
+                'nama_pasien' => $this->input->post('name'),
+                'alamat_pasien' => $this->input->post('address'),
+                'status_bpjs' => $this->input->post('bpjs'),
             ];
-            $this->db->insert('berobat', $berobat);
+            $this->db->insert('pasien', $pasien);
+            $nama_pasien = $this->input->post('name');
+            $ambil_pasien = $this->model->get_rowdata('pasien', 'nama_pasien', $nama_pasien);
+            $cek_antrian = $this->model->get_rowdataTigaKondisi('berobat', 'tanggal_berobat', 'status', 'id_poli', $tanggal, 'Proses', $this->input->post('poli'));
+            // var_dump($cek_antrian);
+            // die();
+            if ($cek_antrian == null) {
+                $berobat = [
+                    'id_pasien' => $ambil_pasien['id_pasien'],
+                    'id_poli' => $this->input->post('poli'),
+                    'no_berobat' => $this->input->post('no_berobat'),
+                    'tanggal_berobat' => $this->input->post('date'),
+                    'antrian' => 1,
+                    'keluhan' => $this->input->post('message'),
+                    'status' => 'Proses',
+                ];
+                $this->db->insert('berobat', $berobat);
+            } else {
+                $berobat = [
+                    'id_pasien' => $ambil_pasien['id_pasien'],
+                    'id_poli' => $this->input->post('poli'),
+                    'no_berobat' => $this->input->post('no_berobat'),
+                    'tanggal_berobat' => $this->input->post('date'),
+                    'antrian' => (int)$cek_antrian['antrian'] + 1,
+                    'keluhan' => $this->input->post('message'),
+                    'status' => 'Proses',
+                ];
+                $this->db->insert('berobat', $berobat);
+            }
+            $this->session->set_flashdata('message', '<div class="alert alert-dark swalDefaultSuccess" role="alert"> Pendaftaran berhasil dilakukan, silahkan lihat nomor antrian! </div>');
+            redirect('home');
         }
-        $this->session->set_flashdata('message', '<div class="alert alert-dark swalDefaultSuccess" role="alert"> New sub menu added! </div>');
-        redirect('home');
     }
     public function cari()
     {

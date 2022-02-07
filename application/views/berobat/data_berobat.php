@@ -35,7 +35,10 @@
                                 <td><?= $r['keterangan_pakai']; ?></td>
                                 <td>
                                     <a href="" class="badge badge-warning" data-toggle="modal" data-target="#modal-edit<?= $r['id_resep']; ?>">Edit</a>
-                                    <a href="<?= base_url(); ?>obat/hapus/<?= $r['id_resep']; ?>" class="badge badge-danger" onclick="return confirm('yakin?');">delete</a>
+                                    <form method="post" action="<?= base_url(); ?>berobat/hapus_resep/<?= $r['id_resep']; ?>">
+                                        <input type="hidden" name="id_berobat" value="<?= $this->uri->segment(3); ?>">
+                                        <button type="submit" class="badge badge-danger" onclick="return confirm('yakin?');">delete</button>
+                                    </form>
                                 </td>
                             </tr>
                             <?php $i++; ?>
@@ -92,6 +95,7 @@
                                     <th scope="col">No.Berobat</th>
                                     <th scope="col">Nama obat</th>
                                     <th scope="col">Keterangan</th>
+                                    <th scope="col">Aksi</th>
                                     <th width="5%" scope="col">Banyak</th>
                                     <th width="20%" scope="col">Harga</th>
                                 </tr>
@@ -104,6 +108,9 @@
                                         <td><?= $r['no_berobat']; ?></td>
                                         <td><?= $r['nama_obat']; ?></td>
                                         <td><?= $r['keterangan_pakai']; ?></td>
+                                        <td>
+                                            <a href="" class="badge badge-warning" data-toggle="modal" data-target="#modal-edit<?= $r['id_resep']; ?>">Edit</a>
+                                        </td>
                                         <td><input type="number" min="0" name="jumlah<?= $i ?>" id="jumlah<? $i ?>" class="form-control" width="5%"></td>
                                         <td><?= "Rp." . number_format($r['harga_jual'], 2, ",", ".") ?></td>
 
@@ -209,8 +216,8 @@
     </div>
 </div>
 
-<?php foreach ($obat as $o) : ?>
-    <div class="modal fade" id="modal-edit<?= $o['id_obat']; ?>" tabindex="-1" aria-labelledby="modal-edit<?= $o['id_obat'] ?>" aria-hidden="true">
+<?php foreach ($resep as $o) : ?>
+    <div class="modal fade" id="modal-edit<?= $o['id_resep']; ?>" tabindex="-1" aria-labelledby="modal-edit<?= $o['id_resep'] ?>" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -219,40 +226,23 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <form action="<?= base_url('obat/update_obat'); ?>" method="post">
+                <form action="<?= base_url('berobat/edit_resep'); ?>" method="post">
                     <div class="modal-body">
-                        <input type="hidden" name="id_obat" value="<?= $o['id_obat']; ?>">
                         <div class="form-group">
+                            <input type="hidden" name="id_resep" id="id_resep" value="<?= $o['id_resep'] ?>">
+                            <input type="hidden" name="id_berobat" id="id_berobat" value="<?= $this->uri->segment(3); ?>">
                             <label for="obat">Nama Obat</label>
-                            <input type="text" class="form-control" id="obat" name='obat' placeholder="Nama obat" value="<?= $o['nama_obat']; ?>"">
-                            <label for=" stok">Stok</label>
-                            <input type="number" class="form-control" id="stok" name='stok' placeholder="Stok obat" min="0" value="<?= $o['stok_obat']; ?>">
-                            <label for=" satuan">Satuan</label>
-                            <select class="form-control" name="satuan" id="satuan">
-                                <?php if ($o['satuan'] == 'Tablet') : ?>
-                                    <option value="Tablet" selected>Tablet</option>
-                                    <option value="Strip">Strip</option>
-                                    <option value="Botol">Botol</option>
-                                    <option value="Lembar">Lembar</option>
-                                <?php elseif ($o['satuan'] == 'Strip') : ?>
-                                    <option value="Tablet">Tablet</option>
-                                    <option value="Strip" selected>Strip</option>
-                                    <option value="Botol">Botol</option>
-                                    <option value="Lembar">Lembar</option>
-                                <?php elseif ($o['satuan'] == 'Botol') : ?>
-                                    <option value="Tablet">Tablet</option>
-                                    <option value="Strip">Strip</option>
-                                    <option value="Botol" selected>Botol</option>
-                                    <option value="Lembar">Lembar</option>
-                                <?php elseif ($o['satuan'] == 'Lembar') : ?>
-                                    <option value="Tablet">Tablet</option>
-                                    <option value="Strip">Strip</option>
-                                    <option value="Botol">Botol</option>
-                                    <option value="Lembar" selected>Lembar</option>
-                                <?php endif ?>
+                            <select class="form-control" name="obat" id="obat">
+                                <?php foreach ($obat as $r) : ?>
+                                    <?php if ($r['id_obat'] ==  $o['id_obat']) : ?>
+                                        <option value="<?= $r['id_obat']; ?>" selected><?= $r['nama_obat']; ?></option>
+                                    <?php else : ?>
+                                        <option value="<?= $r['id_obat']; ?>"><?= $r['nama_obat']; ?></option>
+                                    <?php endif ?>
+                                <?php endforeach ?>
                             </select>
-                            <label for="keterangan">Keterangan</label>
-                            <textarea class="form-control" name="keterangan" id="keterangan" rows="3"><?= $o['keterangan'] ?></textarea>
+                            <label for="keterangan">Keterangan Pakai</label>
+                            <textarea class="form-control" name="keterangan" id="keterangan" rows="3" required><?= $o['keterangan_pakai'] ?></textarea>
                         </div>
                     </div>
                     <div class="modal-footer">
